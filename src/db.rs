@@ -29,11 +29,15 @@ impl JiraDatabase {
 
     pub fn create_story(&self, story: Story, epic_id: u32) -> Result<u32> {
         let mut state = self.read_db()?;
-        let next_id = state.last_item_id + 1;
         let epic = state
             .epics
             .get_mut(&epic_id)
             .ok_or_else(|| anyhow!("No epic with supplied id: {}", epic_id))?;
+        let next_id = state.last_item_id + 1;
+        state.stories.insert(next_id, story);
+        epic.stories.push(next_id);
+        state.last_item_id = next_id;
+        self.database.write_db(&state)?;
         Ok(next_id)
     }
 
@@ -148,37 +152,37 @@ mod tests {
         let result = db.create_story(story, non_existent_epic_id);
         assert_eq!(result.is_err(), true);
     }
-    //
-    // #[test]
-    // fn create_story_should_work() {
-    //     let db = JiraDatabase {
-    //         database: Box::new(MockDB::new()),
-    //     };
-    //     let epic = Epic::new("".to_owned(), "".to_owned());
-    //     let story = Story::new("".to_owned(), "".to_owned());
-    //
-    //     let result = db.create_epic(epic);
-    //     assert_eq!(result.is_ok(), true);
-    //
-    //     let epic_id = result.unwrap();
-    //
-    //     let result = db.create_story(story.clone(), epic_id);
-    //     assert_eq!(result.is_ok(), true);
-    //
-    //     let id = result.unwrap();
-    //     let db_state = db.read_db().unwrap();
-    //
-    //     let expected_id = 2;
-    //
-    //     assert_eq!(id, expected_id);
-    //     assert_eq!(db_state.last_item_id, expected_id);
-    //     assert_eq!(
-    //         db_state.epics.get(&epic_id).unwrap().stories.contains(&id),
-    //         true
-    //     );
-    //     assert_eq!(db_state.stories.get(&id), Some(&story));
-    // }
-    //
+
+    #[test]
+    fn create_story_should_work() {
+        let db = JiraDatabase {
+            database: Box::new(MockDB::new()),
+        };
+        let epic = Epic::new("".to_owned(), "".to_owned());
+        let story = Story::new("".to_owned(), "".to_owned());
+
+        let result = db.create_epic(epic);
+        assert_eq!(result.is_ok(), true);
+
+        let epic_id = result.unwrap();
+
+        let result = db.create_story(story.clone(), epic_id);
+        assert_eq!(result.is_ok(), true);
+
+        let id = result.unwrap();
+        let db_state = db.read_db().unwrap();
+
+        let expected_id = 2;
+
+        assert_eq!(id, expected_id);
+        assert_eq!(db_state.last_item_id, expected_id);
+        assert_eq!(
+            db_state.epics.get(&epic_id).unwrap().stories.contains(&id),
+            true
+        );
+        assert_eq!(db_state.stories.get(&id), Some(&story));
+    }
+
     // #[test]
     // fn delete_epic_should_error_if_invalid_epic_id() {
     //     let db = JiraDatabase {
