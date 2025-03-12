@@ -1,6 +1,6 @@
 use std::fs;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
 use crate::models::{DBState, Epic, Status, Story};
 
@@ -9,20 +9,32 @@ pub struct JiraDatabase {
 }
 
 impl JiraDatabase {
-    pub fn new(file_path: String) -> Self {
-        todo!()
-    }
+    // pub fn new(file_path: String) -> Self {
+    //     todo!()
+    // }
 
     pub fn read_db(&self) -> Result<DBState> {
-        todo!()
+        let state = self.database.read_db()?;
+        Ok(state)
     }
 
     pub fn create_epic(&self, epic: Epic) -> Result<u32> {
-        todo!()
+        let mut state = self.read_db()?;
+        let next_id = state.last_item_id + 1;
+        state.last_item_id = next_id;
+        state.epics.insert(next_id, epic);
+        self.database.write_db(&state)?;
+        Ok(next_id)
     }
 
     pub fn create_story(&self, story: Story, epic_id: u32) -> Result<u32> {
-        todo!()
+        let mut state = self.read_db()?;
+        let next_id = state.last_item_id + 1;
+        let epic = state
+            .epics
+            .get_mut(&epic_id)
+            .ok_or_else(|| anyhow!("No epic with supplied id: {}", epic_id))?;
+        Ok(next_id)
     }
 
     pub fn delete_epic(&self, epic_id: u32) -> Result<()> {
@@ -124,18 +136,18 @@ mod tests {
         assert_eq!(db_state.epics.get(&id), Some(&epic));
     }
 
-    // #[test]
-    // fn create_story_should_error_if_invalid_epic_id() {
-    //     let db = JiraDatabase {
-    //         database: Box::new(MockDB::new()),
-    //     };
-    //     let story = Story::new("".to_owned(), "".to_owned());
-    //
-    //     let non_existent_epic_id = 999;
-    //
-    //     let result = db.create_story(story, non_existent_epic_id);
-    //     assert_eq!(result.is_err(), true);
-    // }
+    #[test]
+    fn create_story_should_error_if_invalid_epic_id() {
+        let db = JiraDatabase {
+            database: Box::new(MockDB::new()),
+        };
+        let story = Story::new("".to_owned(), "".to_owned());
+
+        let non_existent_epic_id = 999;
+
+        let result = db.create_story(story, non_existent_epic_id);
+        assert_eq!(result.is_err(), true);
+    }
     //
     // #[test]
     // fn create_story_should_work() {
