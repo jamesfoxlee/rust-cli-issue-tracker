@@ -42,7 +42,20 @@ impl JiraDatabase {
     }
 
     pub fn delete_epic(&self, epic_id: u32) -> Result<()> {
-        todo!()
+        let mut state = self.read_db()?;
+        let epic = state
+            .epics
+            .get(&epic_id)
+            .ok_or_else(|| anyhow!("No epic with supplied id: {}", epic_id))?;
+        // delete stories in the epic
+        for story_id in &epic.stories {
+            state.stories.remove(&story_id);
+        }
+        // delete epic itself
+        // No need to check for None here as epic was already found above
+        state.epics.remove(&epic_id);
+        self.database.write_db(&state)?;
+        Ok(())
     }
 
     pub fn delete_story(&self, epic_id: u32, story_id: u32) -> Result<()> {
@@ -183,47 +196,47 @@ mod tests {
         assert_eq!(db_state.stories.get(&id), Some(&story));
     }
 
-    // #[test]
-    // fn delete_epic_should_error_if_invalid_epic_id() {
-    //     let db = JiraDatabase {
-    //         database: Box::new(MockDB::new()),
-    //     };
-    //
-    //     let non_existent_epic_id = 999;
-    //
-    //     let result = db.delete_epic(non_existent_epic_id);
-    //     assert_eq!(result.is_err(), true);
-    // }
-    //
-    // #[test]
-    // fn delete_epic_should_work() {
-    //     let db = JiraDatabase {
-    //         database: Box::new(MockDB::new()),
-    //     };
-    //     let epic = Epic::new("".to_owned(), "".to_owned());
-    //     let story = Story::new("".to_owned(), "".to_owned());
-    //
-    //     let result = db.create_epic(epic);
-    //     assert_eq!(result.is_ok(), true);
-    //
-    //     let epic_id = result.unwrap();
-    //
-    //     let result = db.create_story(story, epic_id);
-    //     assert_eq!(result.is_ok(), true);
-    //
-    //     let story_id = result.unwrap();
-    //
-    //     let result = db.delete_epic(epic_id);
-    //     assert_eq!(result.is_ok(), true);
-    //
-    //     let db_state = db.read_db().unwrap();
-    //
-    //     let expected_last_id = 2;
-    //
-    //     assert_eq!(db_state.last_item_id, expected_last_id);
-    //     assert_eq!(db_state.epics.get(&epic_id), None);
-    //     assert_eq!(db_state.stories.get(&story_id), None);
-    // }
+    #[test]
+    fn delete_epic_should_error_if_invalid_epic_id() {
+        let db = JiraDatabase {
+            database: Box::new(MockDB::new()),
+        };
+
+        let non_existent_epic_id = 999;
+
+        let result = db.delete_epic(non_existent_epic_id);
+        assert_eq!(result.is_err(), true);
+    }
+
+    #[test]
+    fn delete_epic_should_work() {
+        let db = JiraDatabase {
+            database: Box::new(MockDB::new()),
+        };
+        let epic = Epic::new("".to_owned(), "".to_owned());
+        let story = Story::new("".to_owned(), "".to_owned());
+
+        let result = db.create_epic(epic);
+        assert_eq!(result.is_ok(), true);
+
+        let epic_id = result.unwrap();
+
+        let result = db.create_story(story, epic_id);
+        assert_eq!(result.is_ok(), true);
+
+        let story_id = result.unwrap();
+
+        let result = db.delete_epic(epic_id);
+        assert_eq!(result.is_ok(), true);
+
+        let db_state = db.read_db().unwrap();
+
+        let expected_last_id = 2;
+
+        assert_eq!(db_state.last_item_id, expected_last_id);
+        assert_eq!(db_state.epics.get(&epic_id), None);
+        assert_eq!(db_state.stories.get(&story_id), None);
+    }
     //
     // #[test]
     // fn delete_story_should_error_if_invalid_epic_id() {
