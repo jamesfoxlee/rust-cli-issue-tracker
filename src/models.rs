@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 pub type Id = u32;
 
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 pub enum Status {
     Open,
     InProgress,
@@ -11,7 +11,7 @@ pub enum Status {
     Closed,
 }
 
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 pub struct Epic {
     pub name: String,
     pub description: String,
@@ -30,7 +30,7 @@ impl Epic {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 pub struct Story {
     pub name: String,
     pub description: String,
@@ -47,7 +47,7 @@ impl Story {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 pub struct DBState {
     pub last_item_id: Id,
     pub epics: HashMap<Id, Epic>,
