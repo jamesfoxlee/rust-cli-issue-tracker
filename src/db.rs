@@ -87,7 +87,14 @@ impl JiraDatabase {
     }
 
     pub fn update_story_status(&self, story_id: u32, status: Status) -> Result<()> {
-        todo!()
+        let mut state = self.read_db()?;
+        let story = state
+            .stories
+            .get_mut(&story_id)
+            .ok_or_else(|| anyhow!("No story with supplied id: {}", story_id))?;
+        story.status = status;
+        self.database.write_db(&state)?;
+        Ok(())
     }
 }
 
@@ -342,45 +349,45 @@ mod tests {
         assert_eq!(db_state.epics.get(&epic_id).unwrap().status, Status::Closed);
     }
 
-    // #[test]
-    // fn update_story_status_should_error_if_invalid_story_id() {
-    //     let db = JiraDatabase {
-    //         database: Box::new(MockDB::new()),
-    //     };
-    //
-    //     let non_existent_story_id = 999;
-    //
-    //     let result = db.update_story_status(non_existent_story_id, Status::Closed);
-    //     assert_eq!(result.is_err(), true);
-    // }
-    //
-    // #[test]
-    // fn update_story_status_should_work() {
-    //     let db = JiraDatabase {
-    //         database: Box::new(MockDB::new()),
-    //     };
-    //     let epic = Epic::new("".to_owned(), "".to_owned());
-    //     let story = Story::new("".to_owned(), "".to_owned());
-    //
-    //     let result = db.create_epic(epic);
-    //
-    //     let epic_id = result.unwrap();
-    //
-    //     let result = db.create_story(story, epic_id);
-    //
-    //     let story_id = result.unwrap();
-    //
-    //     let result = db.update_story_status(story_id, Status::Closed);
-    //
-    //     assert_eq!(result.is_ok(), true);
-    //
-    //     let db_state = db.read_db().unwrap();
-    //
-    //     assert_eq!(
-    //         db_state.stories.get(&story_id).unwrap().status,
-    //         Status::Closed
-    //     );
-    // }
+    #[test]
+    fn update_story_status_should_error_if_invalid_story_id() {
+        let db = JiraDatabase {
+            database: Box::new(MockDB::new()),
+        };
+
+        let non_existent_story_id = 999;
+
+        let result = db.update_story_status(non_existent_story_id, Status::Closed);
+        assert_eq!(result.is_err(), true);
+    }
+
+    #[test]
+    fn update_story_status_should_work() {
+        let db = JiraDatabase {
+            database: Box::new(MockDB::new()),
+        };
+        let epic = Epic::new("".to_owned(), "".to_owned());
+        let story = Story::new("".to_owned(), "".to_owned());
+
+        let result = db.create_epic(epic);
+
+        let epic_id = result.unwrap();
+
+        let result = db.create_story(story, epic_id);
+
+        let story_id = result.unwrap();
+
+        let result = db.update_story_status(story_id, Status::Closed);
+
+        assert_eq!(result.is_ok(), true);
+
+        let db_state = db.read_db().unwrap();
+
+        assert_eq!(
+            db_state.stories.get(&story_id).unwrap().status,
+            Status::Closed
+        );
+    }
 
     mod database {
         use std::collections::HashMap;
