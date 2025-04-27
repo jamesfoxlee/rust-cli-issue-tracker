@@ -34,7 +34,6 @@ mod tests {
         let text4 = "testmetest";
 
         let width = 0;
-
         assert_eq!(get_column_string(text4, width), "".to_owned());
 
         let width = 1;

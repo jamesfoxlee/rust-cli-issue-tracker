@@ -18,6 +18,7 @@ pub trait Page {
 pub struct HomePage {
     pub db: Rc<JiraDatabase>,
 }
+
 impl Page for HomePage {
     fn draw_page(&self) -> Result<()> {
         println!("----------------------------- EPICS -----------------------------");
@@ -27,14 +28,26 @@ impl Page for HomePage {
 
         println!();
         println!();
-
         println!("[q] quit | [c] create epic | [:id:] navigate to epic");
 
         Ok(())
     }
 
     fn handle_input(&self, input: &str) -> Result<Option<Action>> {
-        todo!() // match against the user input and return the corresponding action. If the user input was invalid return None.
+        // match against the user input and return the corresponding action. If the user input was invalid return None.
+        match input {
+            "q" => Ok(Some(Action::Exit)),
+            "c" => Ok(Some(Action::CreateEpic)),
+            input => {
+                if let Ok(valid_int) = input.parse::<u32>() {
+                    let epics = self.db.read_db()?.epics;
+                    if epics.contains_key(&valid_int) {
+                        return Ok(Some(Action::NavigateToEpicDetail { epic_id: valid_int }));
+                    }
+                }
+                Ok(None)
+            }
+        }
     }
 }
 
@@ -119,63 +132,61 @@ mod tests {
     mod home_page {
         use super::*;
 
-        // #[test]
-        // fn draw_page_should_not_throw_error() {
-        //     let db = Rc::new(JiraDatabase {
-        //         database: Box::new(MockDB::new()),
-        //     });
-        //
-        //     let page = HomePage { db };
-        //     assert_eq!(page.draw_page().is_ok(), true);
-        // }
-        //
-        // #[test]
-        // fn handle_input_should_not_throw_error() {
-        //     let db = Rc::new(JiraDatabase {
-        //         database: Box::new(MockDB::new()),
-        //     });
-        //
-        //     let page = HomePage { db };
-        //     assert_eq!(page.handle_input("").is_ok(), true);
-        // }
-        //
-        // #[test]
-        // fn handle_input_should_return_the_correct_actions() {
-        //     let db = Rc::new(JiraDatabase {
-        //         database: Box::new(MockDB::new()),
-        //     });
-        //
-        //     let epic = Epic::new("".to_owned(), "".to_owned());
-        //
-        //     let epic_id = db.create_epic(epic).unwrap();
-        //
-        //     let page = HomePage { db };
-        //
-        //     let q = "q";
-        //     let c = "c";
-        //     let valid_epic_id = epic_id.to_string();
-        //     let invalid_epic_id = "999";
-        //     let junk_input = "j983f2j";
-        //     let junk_input_with_valid_prefix = "q983f2j";
-        //     let input_with_trailing_white_spaces = "q\n";
-        //
-        //     assert_eq!(page.handle_input(q).unwrap(), Some(Action::Exit));
-        //     assert_eq!(page.handle_input(c).unwrap(), Some(Action::CreateEpic));
-        //     assert_eq!(
-        //         page.handle_input(&valid_epic_id).unwrap(),
-        //         Some(Action::NavigateToEpicDetail { epic_id: 1 })
-        //     );
-        //     assert_eq!(page.handle_input(invalid_epic_id).unwrap(), None);
-        //     assert_eq!(page.handle_input(junk_input).unwrap(), None);
-        //     assert_eq!(
-        //         page.handle_input(junk_input_with_valid_prefix).unwrap(),
-        //         None
-        //     );
-        //     assert_eq!(
-        //         page.handle_input(input_with_trailing_white_spaces).unwrap(),
-        //         None
-        //     );
-        // }
+        #[test]
+        fn draw_page_should_not_throw_error() {
+            let db = Rc::new(JiraDatabase {
+                database: Box::new(MockDB::new()),
+            });
+
+            let page = HomePage { db };
+            assert_eq!(page.draw_page().is_ok(), true);
+        }
+
+        #[test]
+        fn handle_input_should_not_throw_error() {
+            let db = Rc::new(JiraDatabase {
+                database: Box::new(MockDB::new()),
+            });
+
+            let page = HomePage { db };
+            assert_eq!(page.handle_input("").is_ok(), true);
+        }
+
+        #[test]
+        fn handle_input_should_return_the_correct_actions() {
+            let db = Rc::new(JiraDatabase {
+                database: Box::new(MockDB::new()),
+            });
+
+            let epic = Epic::new("".to_owned(), "".to_owned());
+            let epic_id = db.create_epic(epic).unwrap();
+            let page = HomePage { db };
+
+            let q = "q";
+            let c = "c";
+            let valid_epic_id = epic_id.to_string();
+            let invalid_epic_id = "999";
+            let junk_input = "j983f2j";
+            let junk_input_with_valid_prefix = "q983f2j";
+            let input_with_trailing_white_spaces = "q\n";
+
+            assert_eq!(page.handle_input(q).unwrap(), Some(Action::Exit));
+            assert_eq!(page.handle_input(c).unwrap(), Some(Action::CreateEpic));
+            assert_eq!(
+                page.handle_input(&valid_epic_id).unwrap(),
+                Some(Action::NavigateToEpicDetail { epic_id: 1 })
+            );
+            assert_eq!(page.handle_input(invalid_epic_id).unwrap(), None);
+            assert_eq!(page.handle_input(junk_input).unwrap(), None);
+            assert_eq!(
+                page.handle_input(junk_input_with_valid_prefix).unwrap(),
+                None
+            );
+            assert_eq!(
+                page.handle_input(input_with_trailing_white_spaces).unwrap(),
+                None
+            );
+        }
     }
 
     mod epic_detail_page {
