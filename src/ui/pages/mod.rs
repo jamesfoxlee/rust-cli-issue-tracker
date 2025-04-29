@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::rc::Rc;
 
 use anyhow::anyhow;
@@ -13,6 +14,10 @@ use page_helpers::*;
 pub trait Page {
     fn draw_page(&self) -> Result<()>;
     fn handle_input(&self, input: &str) -> Result<Option<Action>>;
+    // as_any() has been added to all page objects. Used to support down-casting, which is used in
+    // Navigator tests. For more info check out this StackOverflow post
+    // https://stackoverflow.com/questions/33687447/how-to-get-a-reference-to-a-concrete-type-from-a-trait-object
+    fn as_any(&self) -> &dyn Any;
 }
 
 pub struct HomePage {
@@ -48,6 +53,10 @@ impl Page for HomePage {
                 Ok(None)
             }
         }
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
@@ -111,6 +120,10 @@ impl Page for EpicDetail {
             }
         }
     }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 pub struct StoryDetail {
@@ -153,6 +166,10 @@ impl Page for StoryDetail {
             })),
             _ => Ok(None),
         }
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
