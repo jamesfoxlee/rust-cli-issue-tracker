@@ -97,8 +97,9 @@ impl Navigator {
                 }
             }
             Action::Exit => {
-                // clear all but home page
-                self.pages.drain(1..);
+                // uncertain why removing home page here but test requires empty pages vector
+                // after Exit
+                self.pages.clear();
             }
         }
 
