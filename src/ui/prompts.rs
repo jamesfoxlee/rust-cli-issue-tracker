@@ -29,7 +29,7 @@ fn create_epic_prompt() -> Epic {
     let mut name = get_user_input();
     println!("Epic Description:");
     let mut description = get_user_input();
-    let epic = Epic::new(name, description);
+    let epic = Epic::new(name.trim().to_owned(), description.trim().to_owned());
     epic
 }
 

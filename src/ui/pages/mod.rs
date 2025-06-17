@@ -27,9 +27,18 @@ pub struct HomePage {
 impl Page for HomePage {
     fn draw_page(&self) -> Result<()> {
         println!("----------------------------- EPICS -----------------------------");
-        println!("     id     |               name               |      status      ");
+        println!("     id     |               name               |      status     ");
 
         // TODO: print out epics using get_column_string(). also make sure the epics are sorted by id
+        let epics = self.db.read_db()?.epics;
+        epics.iter().for_each(|(index, epic)| {
+            println!(
+                "{} | {} | {}",
+                get_column_string(&index.to_string(), 11),
+                get_column_string(&epic.name.to_string(), 32),
+                get_column_string(&epic.status.to_string(), 17),
+            );
+        });
 
         println!();
         println!();

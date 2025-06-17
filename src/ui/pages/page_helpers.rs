@@ -2,6 +2,10 @@ use ellipse::Ellipse;
 
 pub fn get_column_string(text: &str, width: usize) -> String {
     let text_len = text.len();
+    // println!(
+    //     "GCS for width: {} text: {} with len: {}",
+    //     width, text, text_len
+    // );
     if text_len <= width {
         // need to pad the truncated string with spaces or UI will get wonky
         let pads = width - text_len;
@@ -9,6 +13,7 @@ pub fn get_column_string(text: &str, width: usize) -> String {
         for _ in 0..pads {
             padded.push(' ');
         }
+        // println!("padded length: {}", padded.len());
         return padded;
     }
     // truncate_ellipse() trims to specified length and always appends ... so result will be
