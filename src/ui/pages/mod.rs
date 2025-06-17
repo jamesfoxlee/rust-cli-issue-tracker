@@ -33,9 +33,9 @@ impl Page for HomePage {
         let epics = self.db.read_db()?.epics;
         epics.iter().for_each(|(index, epic)| {
             println!(
-                "{} | {} | {}",
-                get_column_string(&index.to_string(), 11),
-                get_column_string(&epic.name.to_string(), 32),
+                "{}|{}|{}",
+                get_column_string(&index.to_string(), 12),
+                get_column_string(&epic.name.to_string(), 34),
                 get_column_string(&epic.status.to_string(), 17),
             );
         });

@@ -39,7 +39,7 @@ fn create_story_prompt() -> Story {
     let mut name = get_user_input();
     println!("Story Description:");
     let mut description = get_user_input();
-    let story = Story::new(name, description);
+    let story = Story::new(name.trim().to_owned(), description.trim().to_owned());
     story
 }
 
