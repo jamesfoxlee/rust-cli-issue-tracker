@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 use anyhow::anyhow;
@@ -31,10 +32,12 @@ impl Page for HomePage {
 
         // TODO: print out epics using get_column_string(). also make sure the epics are sorted by id
         let epics = self.db.read_db()?.epics;
-        epics.iter().for_each(|(index, epic)| {
+        let sorted_keys = epics.keys().sorted();
+        sorted_keys.for_each(|key| {
+            let epic = &epics[key];
             println!(
                 "{}|{}|{}",
-                get_column_string(&index.to_string(), 12),
+                get_column_string(&key.to_string(), 12),
                 get_column_string(&epic.name.to_string(), 34),
                 get_column_string(&epic.status.to_string(), 17),
             );
