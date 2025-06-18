@@ -1,11 +1,9 @@
+// this is a trait implemented on types e.g.String so we need to bring entirety into scope
+// rather than importing e.g. just a function
 use ellipse::Ellipse;
 
 pub fn get_column_string(text: &str, width: usize) -> String {
     let text_len = text.len();
-    // println!(
-    //     "GCS for width: {} text: {} with len: {}",
-    //     width, text, text_len
-    // );
     if text_len <= width {
         // need to pad the truncated string with spaces or UI will get wonky
         let pads = width - text_len;

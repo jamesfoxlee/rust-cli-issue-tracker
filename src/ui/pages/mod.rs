@@ -1,9 +1,9 @@
 use std::any::Any;
-use std::collections::HashMap;
 use std::rc::Rc;
 
 use anyhow::anyhow;
 use anyhow::Result;
+use clearscreen;
 use itertools::Itertools;
 
 use crate::db::JiraDatabase;
@@ -30,7 +30,6 @@ impl Page for HomePage {
         println!("----------------------------- EPICS -----------------------------");
         println!("     id     |               name               |      status     ");
 
-        // TODO: print out epics using get_column_string(). also make sure the epics are sorted by id
         let epics = self.db.read_db()?.epics;
         let sorted_keys = epics.keys().sorted();
         sorted_keys.for_each(|key| {
@@ -38,14 +37,12 @@ impl Page for HomePage {
             println!(
                 "{}|{}|{}",
                 get_column_string(&key.to_string(), 12),
-                get_column_string(&epic.name.to_string(), 34),
-                get_column_string(&epic.status.to_string(), 17),
+                get_column_string(&epic.name, 34),
+                get_column_string(&epic.status.to_string(), 17)
             );
         });
 
-        println!();
-        println!();
-        println!("[q] quit | [c] create epic | [:id:] navigate to epic");
+        println!("\n[q] quit | [c] create epic | [:id:] navigate to epic");
 
         Ok(())
     }
@@ -87,19 +84,31 @@ impl Page for EpicDetail {
 
         println!("------------------------------ EPIC ------------------------------");
         println!("  id  |     name     |         description         |    status    ");
+        println!(
+            "{}|{}|{}|{}",
+            get_column_string(&self.epic_id.to_string(), 6),
+            get_column_string(&epic.name, 14),
+            get_column_string(&epic.description, 29),
+            get_column_string(&epic.status.to_string(), 14),
+        );
 
-        // TODO: print out epic details using get_column_string()
-
-        println!();
+        println!("\n\n");
         println!("---------------------------- STORIES ----------------------------");
         println!("     id     |               name               |      status      ");
 
         let stories = &db_state.stories;
+        for key in epic.stories.iter().sorted() {
+            if let Some(story) = stories.get(key) {
+                println!(
+                    "{}|{}|{}",
+                    get_column_string(&key.to_string(), 12),
+                    get_column_string(&story.name, 34),
+                    get_column_string(&story.status.to_string(), 17),
+                );
+            }
+        }
 
-        // TODO: print out stories using get_column_string(). also make sure the stories are sorted by id
-
-        println!();
-        println!();
+        println!("\n\n");
         println!("[p] previous | [u] update epic | [d] delete epic | [c] create story | [:id:] navigate to story");
 
         Ok(())
@@ -155,11 +164,15 @@ impl Page for StoryDetail {
         println!("------------------------------ STORY ------------------------------");
         println!("  id  |     name     |         description         |    status    ");
 
-        // TODO: print out story details using get_column_string()
+        println!(
+            "{}|{}|{}|{}",
+            get_column_string(&self.story_id.to_string(), 6),
+            get_column_string(&story.name, 14),
+            get_column_string(&story.description, 29),
+            get_column_string(&story.status.to_string(), 15),
+        );
 
-        println!();
-        println!();
-
+        println!("\n\n");
         println!("[p] previous | [u] update story | [d] delete story");
 
         Ok(())
